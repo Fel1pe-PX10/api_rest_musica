@@ -2,7 +2,7 @@ const { Schema, model } = require('mongoose');
 const { default: isEmail } = require('validator/lib/isEmail');
 
 const UserSchema = Schema({
-    nombre: {
+    name: {
         type: String,
         required: true
     },
