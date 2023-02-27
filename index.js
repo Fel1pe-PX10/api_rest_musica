@@ -23,7 +23,15 @@ app.use(express.json());
 app.use(express.urlencoded({extended:true}));
 
 // Cargar configuracion de rutas 
+const albumRoutes  = require('./routes/album');
+const artistRoutes = require('./routes/artist');
+const songRoutes   = require('./routes/song');
+const userRoutes   = require('./routes/user');
 
+app.use('/api/album', albumRoutes);
+app.use('/api/artist', artistRoutes);
+app.use('/api/song', songRoutes);
+app.use('/api/user', userRoutes);
 
 // Ruta de prueba
 app.get('/test', (req, res) => {
