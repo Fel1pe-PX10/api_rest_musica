@@ -1,5 +1,6 @@
 
 const bcrypt = require('bcrypt');
+const mongoose = require('mongoose');
 
 
 const User = require('../models/user');
@@ -140,8 +141,44 @@ const login = async (req, res) => {
     }
 }
 
+const getUser = async(req, res) => {
+    // Obtener id del usuario de la url
+    const id = req.params.id;
+
+    // Consulta del usuario
+    try {
+        // Comprueba si es un id valido de mongoose
+        if (!mongoose.Types.ObjectId.isValid(id)) {
+            return res.status(400).json({
+                status: 'error',
+                message: 'No es un id valido'
+            });
+        }
+
+        const userDb = await User.findById(id);
+    
+        if(!userDb){
+            return res.status(404).json({
+                status: 'error',
+                message: 'No existe un usuario con ese id'
+            });
+        }
+
+        return res.json({
+            status: 'success',
+            message: 'Usuario profile',
+            userDb,
+            identity: req.user
+        })
+    } catch (error) {
+        console.log(error);
+        throw new Error('Error consultando al usuario');
+    }
+}
+
 module.exports = {
     login,
+    getUser,
     test,
     register
 }
