@@ -6,6 +6,10 @@ const User = require('../models/user');
 
 const { validateUser } = require('../helpers/validate');
 
+const { findOne } = require('../models/user');
+
+const { createToken } = require('../services/jwt');
+
 
 // ruta prueba
 const test = (req, res) => {
@@ -85,7 +89,59 @@ const register = async(req, res) => {
     }
 }
 
+const login = async (req, res) => {
+    // Obtener los parametros de la peticion
+    const params = req.body;
+
+    // Comprobar que llegan completos
+    if(!params.email || !params.password){
+        return res.status(400).json({
+            status: 'error',
+            message: 'Credenciales incompletas'
+        });
+    }
+
+    // Comprobar que existe el usuario en la bbddd
+    try {
+        const userDb = await User.findOne({email: params.email}).select('+password +role');
+        
+        if(!userDb){
+            return res.status(404).json({
+                status: 'error',
+                message: 'No existe un usuario con ese correo'
+            });
+        }
+        
+        // Comprobar contraseña
+        const pwd = await bcrypt.compareSync(params.password, userDb.password);
+
+        if(!pwd){
+            return res.status(400).json({
+                status: 'error',
+                message: 'Error de credenciales'
+            });
+        }
+
+        // Crear token jwt
+        const token = createToken(userDb);
+
+        // Devolver datos usuarios y token
+        return res.json({
+            status: 'success',
+            message: 'Usuario Login',
+            userDb,
+            token
+        })
+
+
+    } catch (error) {
+        console.log(error);
+        throw new Error('Error consultando al usuario o sus credenciales');
+    }
+}
+
 module.exports = {
+    login,
     test,
     register
 }
