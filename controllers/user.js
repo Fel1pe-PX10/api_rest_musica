@@ -176,9 +176,68 @@ const getUser = async(req, res) => {
     }
 }
 
+const update = async (req, res) => {
+
+    // Datos usuario identificado
+    const userIdentity = req.user;
+
+    // Obtener los datos a actualizar
+    const userToUpdate = req.body;
+
+    // comprobar usuarios almacenados y ver que no exista uno con la misma información a actualizar
+    const userIsset = await User.find({
+                                        $or: [
+                                            { email: userToUpdate.email.toLowerCase() },
+                                            { nick: userToUpdate.nick.toLowerCase() }
+                                        ]
+                                    }); 
+
+    userIssetFlag = false;
+    userIsset.forEach(user => {
+        if(user && user._id != userIdentity.id) {
+            userIssetFlag = true;
+            console.log(user._id, userIdentity.id);
+        }
+    });
+
+    if(userIssetFlag){
+        return res.status(400).json({
+            status: 'error',
+            message: 'Existen datos con esos valore y no puede actualizarse el usuario actual'
+        });
+    }
+
+    // Cifrar password si llega (si no borrar del objeto)
+    if(userToUpdate.password){
+        const pwd = await bcrypt.hash(userToUpdate.password, 10);
+        userToUpdate.password = pwd;
+    }
+    else{
+        delete userToUpdate.password;
+    }
+
+    // Actualizar informacion del usuario
+    try {
+        const userUpdate = await User.findByIdAndUpdate({_id: userIdentity.id}, userToUpdate, {new:true});
+
+        return res.json({
+            status: 'success',
+            message: 'Usuario update',
+            userUpdate
+        });
+        
+    } catch (error) {
+        console.log(error);
+
+        throw new Error('Error al momento de actualizar el usuario');
+        
+    }
+}
+
 module.exports = {
     login,
     getUser,
+    register,
     test,
-    register
+    update
 }
