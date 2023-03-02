@@ -1,6 +1,8 @@
 
 const bcrypt = require('bcrypt');
 const mongoose = require('mongoose');
+const fs = require('fs');
+const path = require('path');
 
 
 const User = require('../models/user');
@@ -234,10 +236,82 @@ const update = async (req, res) => {
     }
 }
 
+const upload = async(req, res) => {
+    
+    // Obtener fichero de imagen
+    if(!req.file){
+        return res.status(404).json({
+            status: 'error',
+            message: 'La petición no incluye la imagen'
+        });
+    }
+
+    // Obtener el nombre de la imagen
+    const image = req.file.originalname;
+
+    // Obetener informacion de la imagen
+    const imageSplit = image.split('\.');
+
+    // Comprobar extension valida
+    const extension = imageSplit[imageSplit.length-1];
+    if(extension != 'png' && extension != 'jpeg' && extension != 'gif' && extension != 'jpg'){
+        const filePath = req.file.path;
+        const fileDelete = fs.unlinkSync(filePath);
+
+        return res.status(400).json({
+            status: 'error',
+            message: 'La extensión no es válida',
+        });
+    }
+
+    // Guardar imagen en ddbb
+    try {
+        const update = await User.findByIdAndUpdate({_id: req.user.id}, {image:req.file.filename}, {new:true});
+
+        if(update){
+            return res.json({
+                status: 'success',
+                message: 'Usuario upload',
+                update
+            });
+        }
+        
+    } catch (error) {
+        console.log(error);
+
+        throw new Error('Error al momento de guardar el nombre en la bbdd');
+    }
+}
+
+const avatar = async (req, res) => {
+    // Obtener parametro de la url
+    const file = req.params.file
+
+    //Montar el path real de la imagen
+    const filePath = './uploads/avatars/'+file;
+
+    // Comprobar que existe el fichero
+    fs.stat(filePath, (error, exist) => {
+        if(error || !exist){
+            return res.status(404).json({
+                status: 'error',
+                message: 'No existe la imagen',
+            });
+        }
+
+        // devolver el fichero
+        return res.sendfile(path.resolve(filePath));
+    })
+
+    
+}
+
 module.exports = {
+    avatar,
     login,
     getUser,
     register,
     test,
-    update
+    update,
+    upload
 }
