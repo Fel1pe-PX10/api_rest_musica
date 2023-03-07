@@ -4,7 +4,9 @@ const mongoose           = require('mongoose');
 const mongoosePagination = require('mongoose-pagination');
 const path               = require('path');
 
+const Album  = require('../models/album');
 const Artist = require('../models/artist');
+const Song   = require('../models/song');
 
 // ruta prueba
 const prueba = (req, res) => {
@@ -143,14 +145,19 @@ const remove = async (req, res) => {
         const artist = await Artist.findByIdAndRemove(id);
 
         // Eliminar los albunes
+        const album = await Album.findOneAndDelete({artist: id});
 
         // Eliminar canciones
+        const song = await Song.findOneAndDelete({album: album._id});
+
         
         
         return res.json({
             status: 'success',
             message: 'Delete  artist',
-            artist
+            artist,
+            album,
+            song
         });
     } catch (error) {
         console.log(error);
