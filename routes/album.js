@@ -18,13 +18,14 @@ const updloads = multer({storage});
 
 const auth = require('../middlewares/auth');
 
-const { prueba, save, getAlbum, list, update, upload, image } = require('../controllers/album');
+const { prueba, save, getAlbum, list, update, upload, image, remove } = require('../controllers/album');
 
 router.get('/prueba', prueba);
 router.post('/save', [auth], save);
 router.get('/getAlbum/:id', [auth], getAlbum);
 router.get('/list/:id', [auth], list);
 router.put('/update/:id', [auth], update);
+router.delete('/remove/:id', [auth], remove);
 router.post('/upload/:id', [auth, updloads.single('file0')], upload);
 router.get('/image/:file', [auth], image);
 

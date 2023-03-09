@@ -144,20 +144,20 @@ const remove = async (req, res) => {
         // Consultar y eliminar artista
         const artist = await Artist.findByIdAndRemove(id);
 
-        // Eliminar los albunes
-        const album = await Album.findOneAndDelete({artist: id});
+        // Eliminar los albums
+        const albums = await Album.find({artist: id});
 
-        // Eliminar canciones
-        const song = await Song.findOneAndDelete({album: album._id});
-
-        
+        albums.forEach(async (album) => {
+            // Eliminar canciones
+            const song = await Song.findOneAndDelete({album: album._id});
+            
+            await album.remove();
+        })
         
         return res.json({
             status: 'success',
             message: 'Delete  artist',
-            artist,
-            album,
-            song
+            artist
         });
     } catch (error) {
         console.log(error);

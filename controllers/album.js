@@ -3,6 +3,7 @@ const mongoose = require('mongoose');
 const path     = require('path');
 
 const Album = require('../models/album');
+const Song = require('../models/song');
 
 // ruta prueba
 const prueba = (req, res) => {
@@ -195,11 +196,38 @@ const image = async (req, res) => {
     
 }
 
+const remove = async (req, res) => {
+
+    // Obtener el id del artista de la url
+    const id = req.params.id;
+    
+    try {
+        
+        const album = await Album.findById(id);
+
+        // Eliminar canciones
+        const song = await Song.findOneAndDelete({album: album._id});
+
+        
+        return res.json({
+            status: 'success',
+            message: 'Delete  artist',
+            album,
+            song
+        });
+    } catch (error) {
+        console.log(error);
+
+        throw new Error('Error intentado eliminar el artista');
+    }
+}
+
 module.exports = {
     getAlbum,
     image,
     list,
     prueba,
+    remove,
     save,
     update,
     upload
